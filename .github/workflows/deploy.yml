@@ -22,19 +22,31 @@ jobs:
       - name: Build Vue app
         run: npm run build
 
+      - name: Verify build
+        run: ls -la dist/
+
       - name: Prepare deployment
         run: |
           mkdir -p deploy
           cp -r dist/* deploy/
           echo "Últim desplegament:" > deploy/last_deploy.txt
           date >> deploy/last_deploy.txt
+          ls -la deploy/
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_KEY }}" > ~/prod_key.pem
+          chmod 600 ~/prod_key.pem
+          ssh-keyscan ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test connection
+        run: |
+          ssh -i ~/prod_key.pem ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "echo 'Connection successful'"
 
       - name: Deploy to production
         run: |
-          echo "${{ secrets.PROD_KEY }}" > ~/prod_key.pem
-          chmod 600 ~/prod_key.pem
-          scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/prod_key.pem \
-            ./deploy/* ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:/home/a23marciucar/web/a23marciucar.daw.inspedralbes.cat/public_html/
+          scp -r -i ~/prod_key.pem ./deploy/* ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:/home/a23marciucar/web/a23marciucar.daw.inspedralbes.cat/public_html/
 
       - name: Notify completion
         run: echo "✅ Desplegament completat amb èxit!"
