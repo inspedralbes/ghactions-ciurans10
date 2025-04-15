@@ -1,0 +1,40 @@
+name: Desplegar Calculadora Vue
+run-name: ${{ github.actor }} desplegant calculadora Vue a producció
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vue app
+        run: npm run build
+
+      - name: Prepare deployment
+        run: |
+          mkdir -p deploy
+          cp -r dist/* deploy/
+          echo "Últim desplegament:" > deploy/last_deploy.txt
+          date >> deploy/last_deploy.txt
+
+      - name: Deploy to production
+        run: |
+          echo "${{ secrets.PROD_KEY }}" > ~/prod_key.pem
+          chmod 600 ~/prod_key.pem
+          scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/prod_key.pem \
+            ./deploy/* ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:/home/a23marciucar/web/a23marciucar.daw.inspedralbes.cat/public_html/
+
+      - name: Notify completion
+        run: echo "✅ Desplegament completat amb èxit!"
