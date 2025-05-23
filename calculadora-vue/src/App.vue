@@ -7,13 +7,13 @@
 </template>
 
 <script>
-// Importamos el componente CalculatorKeypad
+
 import CalculatorKeypad from './components/CalculatorKeypad.vue';
 
 export default {
   name: 'App',
   components: {
-    CalculatorKeypad // Registramos el componente para poder usarlo en el template
+    CalculatorKeypad 
   },
   data() {
     return {
@@ -21,7 +21,7 @@ export default {
     };
   },
   methods: {
-    // Método que se ejecuta cuando el componente CalculatorKeypad emite 'number-clicked'
+    
     handleNumberClicked(number) {
       this.clickedNumber = number;
     }
@@ -30,7 +30,7 @@ export default {
 </script>
 
 <style>
-/* Los estilos globales de App.vue */
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

@@ -16,7 +16,7 @@ export default {
   },
   methods: {
     emitClick(number) {
-      // Emitimos un evento 'number-clicked' con el número como payload
+
       this.$emit('number-clicked', number);
     }
   }
@@ -24,7 +24,7 @@ export default {
 </script>
 
 <style scoped>
-/* Las estilos con 'scoped' solo afectan a este componente */
+
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 80px);
