@@ -1,52 +1,38 @@
-name: Desplegar Calculadora Vue
-run-name: ${{ github.actor }} desplegant calculadora Vue a producció
+name: Deploy Vue Calculator
+
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main # O la rama que uses para el despliegue
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18' # Puedes ajustar la versión de Node.js según sea necesario
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci # o npm install
+      working-directory: ./calculadora-vue # Asegúrate de que este sea el directorio de tu aplicación Vue
 
-      - name: Build Vue app
-        run: npm run build
+    - name: Build Vue application
+      run: npm run build
+      working-directory: ./calculadora-vue # Asegúrate de que este sea el directorio de tu aplicación Vue
 
-      - name: Verify build
-        run: ls -la dist/
-
-      - name: Prepare deployment
-        run: |
-          mkdir -p deploy
-          cp -r dist/* deploy/
-          echo "Últim desplegament:" > deploy/last_deploy.txt
-          date >> deploy/last_deploy.txt
-          ls -la deploy/
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PROD_KEY }}" > ~/prod_key.pem
-          chmod 600 ~/prod_key.pem
-          ssh-keyscan ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Test connection
-        run: |
-          ssh -i ~/prod_key.pem ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "echo 'Connection successful'"
-
-      - name: Deploy to production
-        run: |
-          scp -r -i ~/prod_key.pem ./deploy/* ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:/home/a23marciucar/web/a23marciucar.daw.inspedralbes.cat/public_html/
-
-      - name: Notify completion
-        run: echo "✅ Desplegament completat amb èxit!"
+    - name: Deploy to Server
+      uses: easingthemes/ssh-deploy@v4.1.0 # Usa una acción de despliegue SSH
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        SOURCE: "calculadora-vue/dist/" # Ruta de la carpeta 'dist' generada por Vue
+        TARGET: "/var/www/html/calculator-app" # Directorio de destino en tu servidor (ajusta según tu configuración)
+        # Puedes añadir más opciones si es necesario, como borrar el contenido anterior
+        # ARGS: "-avz --delete"
